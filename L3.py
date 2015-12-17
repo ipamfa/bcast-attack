@@ -12,12 +12,12 @@ D = None   # star x star
 U = {}     # konstanta mu
 
 def gram(b) :    # Gram-schmidt, asumsi full rank
-    (n,n) = b.shape
+    (m,n) = b.shape
     global D, B, B_
-    D = np.array( range(0,n), float )
+    D = np.array( range(0,m), float )
     B = np.copy(b)
     B_ = B.astype(float,copy=True)  # konversi ke float
-    for i in range(0,n) :
+    for i in range(0,m) :
         for j in range(0,i) :
             #
             U[(i,j)] = np.dot( B[i],B_[j] )/D[j]
@@ -25,6 +25,9 @@ def gram(b) :    # Gram-schmidt, asumsi full rank
             
         D[i] = np.dot( B_[i],B_[i] )
 
+def getUB(i,j) :  # warning : coupling dg gram. lihat 14/11, 7/12
+    return U[ (i,j) ]*
+        
 # in our program, k=1..(n-1) and l=k-1, k-2..0 -> setup l < k
 def reduce(k,l) :
     global U, B

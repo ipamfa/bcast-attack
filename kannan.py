@@ -2,17 +2,19 @@ from fractions import Fraction
 from numpy.matlib import dot
 from util import gauss_elim
 
-# Btw Kannan itu leading scientist di Microsoft research
-# and pernah dapat Knuth medal serta award lainnya. WTF!
-
 # asumsi desain tanpa thread dan lock, gunakan glob variable
-Z = None                    # vektor zero (nol)
+Z = None                                # vektor zero (nol)
 
-def lifting(a,b) :          # proyeksi thd a
-    i = 1    
-    while float( dot(a, b) )/dot(a, a) :
-        a[i] = a[0] + # what the hell
-        j++
+def lifting(a,b) :                      # proyeksi thd a
+    x = float( dot(a, b) )/dot(a, a)
+    while True :        
+        b = b - a
+        y = float( dot(a, b) )/dot(a, a)
+        if abs(x) < abs(y) :
+            break
+        x = y
+    # undo subtraction of b
+    return b + a
 
 # ref: Kannan p.
 def select_basis(b) :     # b is numpy array    
@@ -66,18 +68,20 @@ def select_basis(b) :     # b is numpy array
         if len(b_)==1 :
             b_[0] =  map(lambda x: round(x,14), b_[0])  # harusnya close to 0
         # rekursif
-        c = select_basis(b_)
+        c = select_basis(b_)          
+        # hasil dari rekursif digunakan utk lifting
         if len(c) > 0 :
             # unique minimal lifting dari c ke a
             j = len(c)
             for i in range(0, j):
-                a[i+1] = lifting(a[0], b[i+1], c[i])
+                # lihat buku catatan 17/12
+                a[i+1] = lifting(a[0], b[i+1] + c[i] - b_[i] )
         
         basis = a
     return basis
 
 # ref: Kannan p.
-#find shortest vector in lattice L(b1, b2, ... b_n)
+# find shortest vector in lattice L(b1, b2, ... b_n)
 def enumerate() :
     return 0
 
