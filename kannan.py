@@ -1,4 +1,5 @@
 from fractions import Fraction
+from numpy.linalg import norm
 from numpy.matlib import dot
 from util import gauss_elim
 
@@ -80,9 +81,28 @@ def select_basis(b) :     # b is numpy array
         basis = a
     return basis
 
+from L3 import gram, getUB
+
+alpha = None
 # ref: Kannan p.
-# find shortest vector in lattice L(b1, b2, ... b_n)
-def enumerate() :
+# return list of integer
+def List(n) :
+    if n == 0:
+        alpha = None
+    # compute proposisi 2.13
+
+# ref: Kannan p.
+# find shortest vector in lattice L(b1, b2, ... b_m)
+def enumerate(b) :
+    m = len(b)
+    if m == 1 :
+        return b    
+    # hitung bm(m)
+    gram(b)
+    bm = getUB(m,m)
+    lim = norm(b[1])/bm
+    for i in range( round(-lim ), round(lim ) ) :
+        List(m-1)
     return 0
 
 # ref: Kannan p.
