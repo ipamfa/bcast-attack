@@ -71,7 +71,7 @@ def select_basis(b) :     # b is numpy array
             # unique minimal lifting dari c ke a
             j = len(c)
             for i in range(0, j):
-                a[] = lifting(a[0], c[i])
+                a[i+1] = lifting(a[0], b[i+1], c[i])
         
         basis = a
     return basis
