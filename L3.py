@@ -1,6 +1,6 @@
 
 import numpy as np
-from numpy.linalg import inv
+from numpy.linalg import inv, norm
 from numpy.matlib import matrix
 
 
@@ -26,7 +26,7 @@ def gram(b) :    # Gram-schmidt, asumsi full rank
         D[i] = np.dot( B_[i],B_[i] )
 
 def getUB(i,j) :  # warning : coupling dg gram. lihat 14/11, 7/12
-    return U[ (i,j) ]*
+    return U[ (i,j) ]*norm( B_[j] )
         
 # in our program, k=1..(n-1) and l=k-1, k-2..0 -> setup l < k
 def reduce(k,l) :
