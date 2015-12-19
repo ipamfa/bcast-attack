@@ -11,7 +11,7 @@ B_ = None  # hasil Gram-schmidt
 D = None   # star x star
 U = {}     # konstanta mu
 
-def gram(b) :    # Gram-schmidt, asumsi full rank
+def gram(b) :    # proses Gram-schmidt thd basis b
     (m,n) = b.shape
     global D, B, B_
     D = np.array( range(0,m), float )
@@ -24,10 +24,16 @@ def gram(b) :    # Gram-schmidt, asumsi full rank
             B_[i] -= U[(i,j)]*B_[j]
             
         D[i] = np.dot( B_[i],B_[i] )
-
-def getUB(i,j) :  # warning : coupling dg gram. lihat 14/11, 7/12
-    return U[ (i,j) ]*norm( B_[j] )
         
+# dua fungsi dibawah ini mengakses hasil gram
+# aksesor ke b_i(j) skalar pengali orthonormal basis lihat catatan 14/11, 7/12
+def getUB(i,j) :
+    return U[ (i,j) ]*norm( B_[j] )
+
+# aksesor ke b* basis orthogonal
+def getBstr(i) :
+    return B_[i]
+
 # in our program, k=1..(n-1) and l=k-1, k-2..0 -> setup l < k
 def reduce(k,l) :
     global U, B
