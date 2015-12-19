@@ -1,4 +1,5 @@
 from fractions import Fraction
+from numpy import zeros, array, append
 from numpy.linalg import norm
 from numpy.matlib import dot
 from util import gauss_elim
@@ -22,7 +23,7 @@ def select_basis(b) :     # b is numpy array
     (j,k) = b.shape       # j = k+1
     global Z
     if Z is None :
-        Z = np.zeros(k)   # TODO : cek apakah rekursif berpengaruh    
+        Z = zeros(k)      # TODO : cek apakah rekursif berpengaruh    
     if all( b[0]==Z ) :
         if len(b) > 1 :
             basis = b[1:]
@@ -83,26 +84,38 @@ def select_basis(b) :     # b is numpy array
 
 from L3 import gram, getUB
 
-alpha = None
+alpha = []    # list of array of possible integer combination
+
 # ref: Kannan p.
 # return list of integer
-def List(n) :
-    if n == 0:
-        alpha = None
-    # compute proposisi 2.13
+def List(k) :
+    if k == 0 :
+        # list telah komplit, tambahkan ke alpha
+        global alpha
+        alpha = append( alpha, [ copy(alpha[0]) ], axis=0 )
+    # 
+    # hitung beta0_k proposisi 2.13 ref Kannan p.
+    # tes utk tiap kombinasi nilai alpha
+    # rekursif
+    i += 1
+    # tambahkan elemen ke x
 
 # ref: Kannan p.
 # find shortest vector in lattice L(b1, b2, ... b_m)
 def enumerate(b) :
     m = len(b)
     if m == 1 :
-        return b    
+        return b
+    global alpha
+    alpha = array( [ zeros(m) ] , dtype=object)
     # hitung bm(m)
     gram(b)
     bm = getUB(m,m)
     lim = norm(b[1])/bm
-    for i in range( round(-lim ), round(lim ) ) :
+    for j in range( round(-lim ), round(lim ) ) :
+        alpha[0, m-1] = j
         List(m-1)
+    # alpha sdh selesai, tinggal di iterasi cari SVP :)
     return 0
 
 # ref: Kannan p.
