@@ -25,13 +25,9 @@ def gram(b) :    # proses Gram-schmidt thd basis b
             
         D[i] = np.dot( B_[i],B_[i] )
         
-# dua fungsi dibawah ini mengakses hasil gram
-# aksesor ke b_i(j) skalar pengali orthonormal basis lihat catatan 14/11, 7/12
-def getUB(i,j) :
-    return U[ (i,j) ]*norm( B_[j] )
-
+# ingat kata the practice of programming : Designing Interface :D
 # aksesor ke b* basis orthogonal
-def getBstr(i) :
+def getBstar(i) :
     return B_[i]
 
 # in our program, k=1..(n-1) and l=k-1, k-2..0 -> setup l < k
