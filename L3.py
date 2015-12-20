@@ -30,6 +30,9 @@ def gram(b) :    # proses Gram-schmidt thd basis b
 def getBstar(i) :
     return B_[i]
 
+def getU(i,j) :      # indeks dimulai dari 0 (nol)
+    return [ (i,j) ]
+
 # in our program, k=1..(n-1) and l=k-1, k-2..0 -> setup l < k
 def reduce(k,l) :
     global U, B
