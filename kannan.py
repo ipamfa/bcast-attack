@@ -137,11 +137,10 @@ def enumerate(b) :
 
 # ref: Kannan p.
 # main procedure of Kannan, find v1 and construct basis
-def shortest(b) :
-    n = len(b)
-    if n==1 :
-        return b
+def shortest(b) :    
     (j,k) = b.shape
+    if j==1 :
+        return b
     # aproximasi reduced basis
     b_ = np.empty( [j-1,k], )
     for i in range( 0,j-1 ) :      # proyeksi perpendicular thd b1
