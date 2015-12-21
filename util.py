@@ -91,6 +91,14 @@ def gauss_elim(b, withq=False) :            # b matrix baris, numpy type
                 return (a,qs)
         return a
 
+# convert type into long
+# input : a = array like 2d struture, s : index to start
+def toLong(a, s=0) :
+        i = s
+        for r in a :
+                a[i] = map(lambda x: long( round(x) ), r)
+                i += 1
+
 def gcd(a,b) :
         if a < b :
                 (a,b) = (b,a)
