@@ -1,7 +1,7 @@
 from fractions import Fraction
-from numpy import zeros, array, append
+from numpy import zeros, array, append, ravel
 from numpy.linalg import norm
-from numpy.matlib import dot
+from numpy.matlib import dot, matrix
 from util import gauss_elim
 
 # asumsi desain tanpa thread dan lock, gunakan glob variable
@@ -82,23 +82,31 @@ def select_basis(b) :     # b is numpy array
         basis = a
     return basis
 
-from L3 import gram, getUB
+from L3 import gram, getBstar, getU
 
 alpha = []    # list of array of possible integer combination
 
 # ref: Kannan p.
+# input : k = basis ke, m = jml basis (indexing diawali dari 1/ aturan umum)
 # return list of integer
-def List(k) :
+def List(k,m) :
     if k == 0 :
         # list telah komplit, tambahkan ke alpha
         global alpha
         alpha = append( alpha, [ copy(alpha[0]) ], axis=0 )
     # 
     # hitung beta0_k proposisi 2.13 ref Kannan p.
+    x = norm( getBstar(0) )/norm( getBstar(k-1) )
+    t = 0
+    for j in range( k+1, m+1 ) :     # lihat catatan 18/12
+        t += getU( j-1,k-1 )         # lihat spek interface
+    beta0_k = long( round(- x - t) )
+    d = long( round(2*x) )
     # tes utk tiap kombinasi nilai alpha
-    # rekursif
-    i += 1
-    # tambahkan elemen ke x
+    global alpha
+    for i in range( beta0_k , beta0_k + d + 1 ) :
+        alpha[0, k-1] = i
+        List(k-1,m) # rekursif
 
 # ref: Kannan p.
 # find shortest vector in lattice L(b1, b2, ... b_m)
@@ -108,17 +116,37 @@ def enumerate(b) :
         return b
     global alpha
     alpha = array( [ zeros(m) ] , dtype=object)
-    # hitung bm(m)
-    gram(b)
-    bm = getUB(m,m)
-    lim = norm(b[1])/bm
-    for j in range( round(-lim ), round(lim ) ) :
+    # hitung bm(m) = b*_m
+    gram(b)    
+    lim = norm(b[0])/norm( getBstar( m-1 ) )
+    for j in range( long( round(-lim )), long( round(lim )) + 1 ) :
         alpha[0, m-1] = j
-        List(m-1)
+        List(m-1,m)
     # alpha sdh selesai, tinggal di iterasi cari SVP :)
-    return 0
+    B = matrix(b)
+    svp = ravel( alpha[1]*B )
+    sn = norm(svp)
+    k = len(alpha)
+    for i in range(2, k) :
+        x = ravel( alpha[i]*B )
+        xn = norm(x)
+        if sn > xn :
+            sn = xn
+            svp = x
+    return svp
 
 # ref: Kannan p.
 # main procedure of Kannan, find v1 and construct basis
-def shortest(b) :        
+def shortest(b) :
+    n = len(b)
+    if n==1 :
+        return b
+    (j,k) = b.shape
+    # aproximasi reduced basis
+    b_ = np.empty( [j-1,k], )
+    for i in range( 0,j-1 ) :      # proyeksi perpendicular thd b1
+        b_[i] = b[i+1] - (np.dot( b[i+1],b[0] )/np.dot( b[0],b[0] ))*b[0]
+    # enumerate
+
+    # select-basis
     return 0
