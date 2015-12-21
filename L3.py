@@ -6,7 +6,7 @@ from numpy.matlib import matrix
 
 from util import swap, gcd, lcm
 
-B = None
+B = None   # basis hasil reduksi, di buku goblok notasinya y
 B_ = None  # hasil Gram-schmidt
 D = None   # star x star
 U = {}     # konstanta mu
@@ -80,5 +80,7 @@ def LLL(b,alpha=0.75) :          # main procedure
             exchange(k)
             if k > 1 :
                 k -= 1
+    # hasil akhir reduksi adalah basis B
+    return B
 
 # TODO : pindah is_reduced ke sini
