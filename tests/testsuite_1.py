@@ -1,4 +1,4 @@
-from kannan import select_basis
+from L3 import gram
 
 # Test       
 X = np.array([
@@ -20,4 +20,5 @@ Z = np.array([
     [2, 6, -9, 6],
 ])
 
-select_basis(5, Z)
+# test Gram-schmidt, ambil dari Bremner
+
