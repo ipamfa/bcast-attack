@@ -1,5 +1,5 @@
 from fractions import Fraction
-from numpy import zeros, array, append, ravel
+from numpy import empty, copy, zeros, array, append, ravel
 from numpy.linalg import norm
 from numpy.matlib import dot, matrix
 from util import gauss_elim
@@ -17,6 +17,13 @@ def lifting(a,b) :                      # proyeksi thd a
         x = y
     # undo subtraction of b
     return b + a
+
+def orthoproject(b) :             # proyeksi orthogonal thd b0
+    (j,k) = b.shape
+    b_ = empty( [j-1,k], )
+    for i in range( 0,j-1 ) :
+        b_[i] = b[i+1] - (dot( b[i+1],b[0] )/dot( b[0],b[0] ))*b[0]
+    return b_
 
 # ref: Kannan p.
 def select_basis(b) :     # b is numpy array    
@@ -36,9 +43,9 @@ def select_basis(b) :     # b is numpy array
         # TODO : numerical precission issue
         c[j-1] = map(lambda x: round(x,14), c[j-1])
         
-        a = np.empty([j-1,k], dtype=object)
-        if not all( c[j-1]==Z ) :           # b[0] bebas linear thd b lain
-            a[0] = np.copy(b[0])
+        a = empty([j-1,k], dtype=object)
+        if not all( c[j-1]==Z ) :          # b[0] bebas linear thd b lain
+            a[0] = copy(b[0])
         else :
             # xs masih matrix, hanya perlu baris terakhir
             xs = map(lambda x: (-1/xs[j-1,0])*x, xs[j-1, 1:])
@@ -62,9 +69,7 @@ def select_basis(b) :     # b is numpy array
 
         # proyeksi b ke a[0]. karena b[0] sdh diproses, maka
         # b yg diproyeksi berikutnya adalah 1,2..j-1
-        b_ = np.empty( [j-1,k], )
-        for i in range( 0,j-1 ) :
-            b_[i] = b[i+1] - (np.dot( b[i+1],a[0] )/np.dot( a[0],a[0] ))*a[0]
+        b_ = orthoproject( append([ a[0]], b[1:], axis=0 ) )
         # spek dr Kannan menyatakan set b adalah linear dependent
         # TODO : cek nilai 0
         if len(b_)==1 :
@@ -111,7 +116,7 @@ def List(k,m) :
 # ref: Kannan p.
 # find shortest vector in lattice L(b1, b2, ... b_m)
 def enumerate(b) :
-    m = len(b)
+    (m,n) = b.shape
     if m == 1 :
         return b
     global alpha
@@ -135,6 +140,11 @@ def enumerate(b) :
             svp = x
     return svp
 
+from math import sqrt
+from numpy.linalg import inv
+from util import toLong
+from L3 import LLL
+
 # ref: Kannan p.
 # main procedure of Kannan, find v1 and construct basis
 def shortest(b) :    
@@ -142,10 +152,38 @@ def shortest(b) :
     if j==1 :
         return b
     # aproximasi reduced basis
-    b_ = np.empty( [j-1,k], )
-    for i in range( 0,j-1 ) :      # proyeksi perpendicular thd b1
-        b_[i] = b[i+1] - (np.dot( b[i+1],b[0] )/np.dot( b[0],b[0] ))*b[0]
+    b_ = orthoproject(b)
+    # rekursif
+    b__ = shortest(b_)
+    T = ( matrix(b__)*matrix( inv(b_) ))  # Todo: cek det=1 dan long
+    toLong(T)
+    v = T*b[1:]           # lifting dg transformasi linear, catatan 13/12
+    b[1:] = numpy.asarray(v)  # override
+    b0n = norm(b[0])
+    b1n = norm(b[1])
+    if b1n > b0n*sqrt(3)/2 :
+        t = copy(b[0]) # swap
+        b[0] = b[1]
+        b[1] = t
+        b0n = b1n
+    # temukan nilai batas j0
+    gram(b)
+    # cari vektor yg norm-nya lebih besar dari b0
+    i = 1
+    while i < j :
+        v = getBstar(i)
+        if norm(v) >= b0n :
+            break
+        i += 1
     # enumerate
-
+    v1 = enumerate(b[:i-1])
     # select-basis
-    return 0
+    B = select_basis( append([v1], b, axis=0) )
+    # ulangi lagi step
+    B_ = orthoproject(B)
+    B__ = shortest(B_)                      # rekursif
+    T = ( matrix(B__)*matrix( inv(B_) ))    # det must 1
+    toLong(T)
+    V = T*B[1:]
+    B[1:] = numpy.asarray(V)
+    return B
