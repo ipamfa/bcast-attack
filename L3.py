@@ -61,13 +61,14 @@ def exchange(k) :       # in our program, k=1..(n-1)
         U[(k-1,j)] = U[(k,j)]
         U[(k,j)] = t
     # update U
+    (n,n) = B.shape           # asumsi full-rank
     for i in range(k+1, n) :
         e = U[(i,k)]
         U[(i,k)] = U[(i,k-1)] - v*U[(i,k)]
         U[(i,k-1)] = U[(k,k-1)]*U[(i,k)] + e
         
-def LLL(b,alpha=0.75) :          # main procedure
-    (n,n) = b.shape              # asumsi b numpy array
+def LLL(b,alpha=0.75) :       # main procedure
+    (n,n) = b.shape           # asumsi b numpy array
     gram(b)
     k = 1
     while k < n :
