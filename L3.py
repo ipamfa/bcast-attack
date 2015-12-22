@@ -70,17 +70,19 @@ def exchange(k) :       # in our program, k=1..(n-1)
 def LLL(b,alpha=0.75) :       # main procedure
     (n,n) = b.shape           # asumsi b numpy array
     gram(b)
-    k = 1
+    k = 1    
     while k < n :
         reduce(k,k-1)
         if D[k] >= (alpha - U[(k,k-1)]**2)*D[k-1] :
-            for l in range(k-2, -1, -1) :
+            for l in range(k-2, -1, -1) :                
                 reduce(k,l)
             k += 1
         else :
             exchange(k)
             if k > 1 :
                 k -= 1
+        i += 1
+        
     # hasil akhir reduksi adalah basis B
     return B
 

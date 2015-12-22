@@ -3,6 +3,7 @@ from L3 import *
 
 # Test Gram-schmidt, ambil dari Bremner      
 class GramSTest(unittest.TestCase) :
+    
     def test_v1equal_bstar1(self):
         X = np.array([
             [3, -1, 5],
@@ -22,7 +23,15 @@ class GramSTest(unittest.TestCase) :
         self.assertIsNone( getBstar(2) )
         
     def test_lll_fullrank_3dim(self) :
-        self.assertEqual(1, 1)
+        # apply reduction algorithm
+        b = np.array([
+            [-2, 7, 7, -5],
+            [3, -2, 6, -1],
+            [2, -8, -9, -7],
+            [8, -9, 6, -4],
+        ])
+        LLL(b, 1.0)
+
         
 Y = np.array([
     [-11,  12,  -4],
