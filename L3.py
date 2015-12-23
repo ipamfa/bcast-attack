@@ -6,8 +6,8 @@ from numpy.matlib import matrix
 
 from util import swap, gcd, lcm
 
-B = None   # basis hasil reduksi, di buku goblok notasinya y
-B_ = None  # hasil Gram-schmidt
+B = None   # basis hasil reduksi, di buku Bremner notasinya y
+B_ = None  # basis orthogonal Gram-schmidt, y*
 D = None   # star x star
 U = {}     # konstanta mu
 
@@ -43,9 +43,11 @@ def reduce(k,l) :
             U[(k,j)] -= ui*U[(l,j)]
         U[(k,l)] -= ui
 
+# mengubah urutan basis dan hitung ulang nilai gamma*
+# nilai mu, dll
 def exchange(k) :       # in our program, k=1..(n-1)
     global B, U, D
-    # swap
+    # swap b_k-1 dan b_k
     z = np.copy( B[k] )
     B[k] = B[k-1]
     B[k-1] = z
@@ -54,6 +56,7 @@ def exchange(k) :       # in our program, k=1..(n-1)
     delta = D[k] + v**2*D[k-1]
     U[(k,k-1)] = v*D[k-1]/delta
     D[k] *= (D[k-1]/delta)
+    D[k-1] = delta
 
     # exchange U_k-1 dan U_k
     for j in range(0, k-1) :  # only run if k > 1 s/d k-2
@@ -66,7 +69,14 @@ def exchange(k) :       # in our program, k=1..(n-1)
         e = U[(i,k)]
         U[(i,k)] = U[(i,k-1)] - v*U[(i,k)]
         U[(i,k-1)] = U[(k,k-1)]*U[(i,k)] + e
-        
+
+def pdebug( i, k, l=None) :   # print for debug
+    global U
+    if l is None :        
+        print "DEBUG: iterasi", i, "exchange", "k=",k
+    else :                
+        print "DEBUG: iterasi", i, "reduce", "k=",k, "l=",l, "ukl=", U[(k,l)]
+    
 def LLL(b,alpha=0.75) :       # main procedure
     global B, U, D
     (n,n) = b.shape           # asumsi b numpy array
@@ -74,17 +84,17 @@ def LLL(b,alpha=0.75) :       # main procedure
     k = 1 ; i = 0
     while k < n :
         i += 1                # iterasi otomatis sdh reduce sekali
-        print "DEBUG: iterasi", i, "reduce k=",k, "l=",k-1, "ukl=", U[(k,k-1)]
+        pdebug(i,k,k-1)
         reduce(k,k-1)
         if D[k] >= (alpha - U[(k,k-1)]**2)*D[k-1] :
             for l in range(k-2, -1, -1) :
                 i += 1
-                print "DEBUG: iterasi", i, "reduce k=",k, "l=",l, "ukl=", U[(k,l)]
+                pdebug(i,k,l)
                 reduce(k,l)
                 
             k += 1
         else :
-            print "DEBUG: iterasi", i, "exchange k=",k
+            pdebug(i,k)
             exchange(k)
             if k > 1 :
                 k -= 1
