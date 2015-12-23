@@ -68,21 +68,26 @@ def exchange(k) :       # in our program, k=1..(n-1)
         U[(i,k-1)] = U[(k,k-1)]*U[(i,k)] + e
         
 def LLL(b,alpha=0.75) :       # main procedure
+    global B, U, D
     (n,n) = b.shape           # asumsi b numpy array
     gram(b)
-    k = 1    
+    k = 1 ; i = 0
     while k < n :
+        i += 1                # iterasi otomatis sdh reduce sekali
+        print "DEBUG: iterasi", i, "reduce k=",k, "l=",k-1, "ukl=", U[(k,k-1)]
         reduce(k,k-1)
         if D[k] >= (alpha - U[(k,k-1)]**2)*D[k-1] :
-            for l in range(k-2, -1, -1) :                
+            for l in range(k-2, -1, -1) :
+                i += 1
+                print "DEBUG: iterasi", i, "reduce k=",k, "l=",l, "ukl=", U[(k,l)]
                 reduce(k,l)
+                
             k += 1
         else :
+            print "DEBUG: iterasi", i, "exchange k=",k
             exchange(k)
             if k > 1 :
                 k -= 1
-        i += 1
-        
     # hasil akhir reduksi adalah basis B
     return B
 
