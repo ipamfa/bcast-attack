@@ -81,20 +81,15 @@ def LLL(b,alpha=0.75) :       # main procedure
     global B, U, D
     (n,n) = b.shape           # asumsi b numpy array
     gram(b)
-    k = 1 ; i = 0
-    while k < n :
-        i += 1                # iterasi otomatis sdh reduce sekali
-        pdebug(i,k,k-1)
+    k = 1
+    while k < n :        
         reduce(k,k-1)
         if D[k] >= (alpha - U[(k,k-1)]**2)*D[k-1] :
-            for l in range(k-2, -1, -1) :
-                i += 1
-                pdebug(i,k,l)
+            for l in range(k-2, -1, -1) :                                
                 reduce(k,l)
                 
             k += 1
-        else :
-            pdebug(i,k)
+        else :            
             exchange(k)
             if k > 1 :
                 k -= 1
