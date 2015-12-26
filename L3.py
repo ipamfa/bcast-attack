@@ -79,10 +79,10 @@ def pdebug( i, k, l=None) :   # print for debug
     
 def LLL(b,alpha=0.75) :       # main procedure
     global B, U, D
-    (n,n) = b.shape           # asumsi b numpy array
+    (m,n) = b.shape           # asumsi b numpy array
     gram(b)
     k = 1
-    while k < n :        
+    while k < m :        
         reduce(k,k-1)
         if D[k] >= (alpha - U[(k,k-1)]**2)*D[k-1] :
             for l in range(k-2, -1, -1) :                                
