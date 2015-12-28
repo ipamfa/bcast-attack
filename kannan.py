@@ -18,17 +18,27 @@ def lifting(a,b) :                      # proyeksi thd a
     # undo subtraction of b
     return b + a
 
-# solve sistem linier a.T = b dengan mencari nilai T
+# solve sistem linier T.a = b dengan mencari nilai T (Kannan p.)
 # input : a, b matrix baris asumsi keduanya konsisten
 def getTransform(a,b) :    
     (j,k) = a.shape     # perlu j >= k, solusi unik atau overdetermined
     T = empty((j,j))
-    # matrix baris -> operasi kolom, matrix kolom -> operasi baris
-    # fungsi eliminasi Gauss melakukan operasi baris maka matrix input
-    # perlu diubah dulu jadi matrix kolom, karena di module kannan, kita
-    # sepakat matrix dalam bentuk baris
-    (a_, t ) = gauss_elim(a.T, True)
-    
+    # bentuk echelon kolom didapat via operasi kolom, maka basis
+    # perlu ditranspose karena asumsi eliminasi adalah row based
+    (a_, g) = gauss_elim(a.T, True)
+    a = a_.T
+    b = b*matrix(g.T)
+    # substitusi balik
+    for x in range(0,j) :
+        for y in range(j-1, -1, -1) :
+            s = 0
+            for z in range(j-1,y,-1) :
+                s += T[x,z]*a[ z,y ]
+            # ada kemungkinan nol
+            if a[y,y]==0 :
+                print "DEBUG: pembagi nol!!"
+            T[x,y] = ( b[x,y]-s )/a[y,y]
+            
     return T
 
 def orthoproject(b) :             # proyeksi orthogonal thd b0
@@ -173,7 +183,7 @@ def shortest(B) :
     # rekursif
     b__ = shortest(x1,)
     
-    T = # 
+    T = 0 # 
     toLong(T)
     # lifting dg transformasi linear, catatan 13/12
     v = T*b[1:]               # karena matrix baris, T di sebelah kiri
@@ -201,7 +211,7 @@ def shortest(B) :
     # ulangi lagi step
     B_ = orthoproject(B)
     B__ = shortest(B_,n-1)                # rekursif
-    T = 
+    T = 0
     toLong(T)
     V = T*B[1:]
     B[1:] = numpy.asarray(V)
