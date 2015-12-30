@@ -18,29 +18,6 @@ def lifting(a,b) :                      # proyeksi thd a
     # undo subtraction of b
     return b + a
 
-# solve sistem linier T.a = b dengan mencari nilai T (Kannan p.)
-# input : a, b matrix baris asumsi keduanya konsisten
-def getTransform(a,b) :
-    # cek jika b adalah bentuk eliminasi gauss    
-    (a_, t) = gauss_elim(a.T, True)
-    (j,k) = a_.shape     
-    T = zeros((k,k))        # transformasi selalu square
-    a = a_
-    b = matrix(t)*b.T    
-    # hitung batas y    
-    Ymax = min(j-1, k-1)
-    # loop per baris T
-    for x in range(0,k) :
-        for y in range(Ymax, -1, -1) :
-            if a[y,y]== 0 :
-                print "DEBUG: error!!"
-            s = 0
-            for z in range(Ymax, y, -1) :
-                # jml s
-                s += a[y,z]*T[z,x]
-            T[y,x] = ( b[y,x] - s )/a[y,y]
-    return T.T
-
 def orthoproject(b) :             # proyeksi orthogonal thd b0
     (j,k) = b.shape
     b_ = empty( [j-1,k], )

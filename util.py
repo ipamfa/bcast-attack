@@ -112,3 +112,8 @@ def gcd(a,b) :
 def lcm(a,b) :
         c = gcd(a,b)
         return c*(a/c)*(b/c)        
+
+
+def findTransform(A, B):     # mencari transformasi linear T.A = B
+        # asumsi A dan B matrix baris
+        return 0
