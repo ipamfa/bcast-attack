@@ -32,18 +32,19 @@ class KannanTest(unittest.TestCase) :
         print b
         print matrix(b)*X # harusnya a
 
-    def test_transform(self) :
-        X = array([
+    def test_transform(self) :        
+        from kannan import getTransform        
+        print "=*=*=*=*=*=*=*transform=*=*=*=*=*=*=*"
+        X = array([                     # kasus j < k
             [1,2,3],
             [4,5,6]
         ])
-        from kannan import getTransform
-        print "=*=*=*=*=*=*=*transform=*=*=*=*=*=*=*"
         Y = matrix([[1,2], [3,4]])*X
         t = getTransform( X,Y )
         print t
+
         # membalik eliminasi gauss
-        X = array([
+        X = array([                     # kasus j > k
             [1,2,3],
             [4,5,6],
             [7,8,9],
@@ -51,6 +52,8 @@ class KannanTest(unittest.TestCase) :
         ])
         # tes bagaimana b didapatkan
         (a,b) = gauss_elim(X,True)
+        T = getTransform(X,a)
+        print T
         
 if __name__ == "__main__" :
     unittest.main()

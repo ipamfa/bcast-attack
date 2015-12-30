@@ -20,26 +20,26 @@ def lifting(a,b) :                      # proyeksi thd a
 
 # solve sistem linier T.a = b dengan mencari nilai T (Kannan p.)
 # input : a, b matrix baris asumsi keduanya konsisten
-def getTransform(a,b) :    
-    (j,k) = a.shape     # perlu j >= k, solusi unik atau overdetermined
-    T = empty((j,j))
-    # bentuk echelon kolom didapat via operasi kolom, maka basis
-    # perlu ditranspose karena asumsi eliminasi adalah row based
-    (a_, g) = gauss_elim(a.T, True)
-    a = a_.T
-    b = b*matrix(g.T)
-    # substitusi balik
-    for x in range(0,j) :
-        for y in range(j-1, -1, -1) :
+def getTransform(a,b) :
+    # cek jika b adalah bentuk eliminasi gauss    
+    (a_, t) = gauss_elim(a.T, True)
+    (j,k) = a_.shape     
+    T = zeros((k,k))        # transformasi selalu square
+    a = a_
+    b = matrix(t)*b.T    
+    # hitung batas y    
+    Ymax = min(j-1, k-1)
+    # loop per baris T
+    for x in range(0,k) :
+        for y in range(Ymax, -1, -1) :
+            if a[y,y]== 0 :
+                print "DEBUG: error!!"
             s = 0
-            for z in range(j-1,y,-1) :
-                s += T[x,z]*a[ z,y ]
-            # ada kemungkinan nol
-            if a[y,y]==0 :
-                print "DEBUG: pembagi nol!!"
-            T[x,y] = ( b[x,y]-s )/a[y,y]
-            
-    return T
+            for z in range(Ymax, y, -1) :
+                # jml s
+                s += a[y,z]*T[z,x]
+            T[y,x] = ( b[y,x] - s )/a[y,y]
+    return T.T
 
 def orthoproject(b) :             # proyeksi orthogonal thd b0
     (j,k) = b.shape
