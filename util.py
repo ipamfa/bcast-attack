@@ -113,7 +113,11 @@ def lcm(a,b) :
         c = gcd(a,b)
         return c*(a/c)*(b/c)        
 
-
-def findTransform(A, B):     # mencari transformasi linear T.A = B
-        # asumsi A dan B matrix baris
+# pencarian solusi linear adalah topik yg luas
+# kita tidak mungkin merangkum nya dalam satu prosedur/fungsi
+# dalam prosedur ini kita asumsi matrix disusun oleh vektor kolom
+# input: A dan B dimensi sama, p = presisi numerik
+# return: solusi sistem linear
+def solve_linear(A, B, p):     # mencari transformasi linear T.A = B
+        # 
         return 0
