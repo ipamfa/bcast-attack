@@ -50,8 +50,8 @@ class GaussElimTest(unittest.TestCase) :    # uji kasus bukan normal
         X = array([            # kasus j = k : solusi unik
             [1,2,3],
             [4,5,6],
-            [5,7,10],
-            [5,7,9]
+            [5,7,9],
+            [5,7,10]
         ])
         Y = array([
             [0,0,0]
