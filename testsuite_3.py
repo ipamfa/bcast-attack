@@ -1,82 +1,48 @@
 import unittest
 from numpy import array
-from numpy.matlib import dot, matrix
-# test algoritma Kannan
-from kannan import lifting, shortest, gauss_elim
-from kannan import getTransform        
+# test algoritma eliminasi Gauss
+from util import solve_linear
 
 class GaussElimTest(unittest.TestCase) :
     
-    def test_gaussel1(self) :        
-        
-        print "=*=*=*=*=*=*=*tes 1=*=*=*=*=*=*=*"
-        X = array([                     # kasus j < k
-            [1,2,3],
-            [4,5,6]
-        ])
-        Y = matrix([[1,2], [3,4]])*X
-        t = getTransform( X,Y )
-        print t
-
-        # membalik eliminasi gauss
-        X = array([               # kasus linear dependen
-            [1,2,3],
-            [4,5,6],
-            [7,8,9],
-            [10,11,12]
-        ])
-        # tes bagaimana b didapatkan
-        (a,b) = gauss_elim(X,True)
-        T = getTransform(X,a)
-        print T
-
     def test_gaussel0(self) :
-        # cek
-        X = array([            # kasus j > k : linear dependen
+        # matrix dari vektor baris
+        X = array([            # kasus j = k : solusi unik
             [1,2,3],
             [4,5,6],
+            [7,8,9]            
+        ])
+        Y = array([
+            [10,11,12]
+        ])
+        print "kasus unik normal"
+        print solve_linear( (X.astype(float)).T, Y)
+
+    def test_gaussel1(self):
+        X = array([            # kasus j = k : solusi unik
+            [1,2,3],
+            [4,5,6]            
+        ])
+        Y = array([
             [7,8,9],
             [10,11,12]
         ])
-        Y = array([
-            [1,2,3],
-            [4,5,6],
-            [7,8,9],
-            [0,0,0]
-        ])
-        print "tes 0"
-        print getTransform(X,Y)
-
-    def test_gaussel2(self):
-        X = array([            # kasus linear dependen v3 = 3v2-2v1
-            [1,2,3],
-            [4,5,6],            
-            [10,11,12]
-        ])
-        print "tes 2"
-        Y = array([
-            [1,2,3],
-            [4,5,6], 
-            [0,0,0]
-        ])
-        print getTransform(X,Y)
-
-    def test_transform0(self) :
-        print "tes transform 0"
-        X = array([
-            [1,2,3],
-            [4,5,6],
-            [7,8,9]
-        ])
-        t = array([
-            [1,2,3],
-            [4,5,6],
-            [7,8,9]
-        ])
-        print gauss_elim(X.T)
-        Y = matrix(X)*matrix(t)
-        print getTransform(X,Y)
+        print "kasus unik not full rank"
+        T = solve_linear( (X.astype(float)).T, Y) # input kolom perlu transp
+        print T.T
         
+    def test_gaussel2(self):
+        X = array([            # kasus j = k : solusi unik
+            [1,2,3],
+            [7,8,9]            
+        ])
+        Y = array([
+            [4,5,6],
+            [10, 11, 12]
+        ])
+        print "kasus unik not full rank"
+        T = solve_linear( (X.astype(float)).T, Y) # input kolom perlu transp
+        print T
 if __name__ == "__main__" :
     unittest.main()
 

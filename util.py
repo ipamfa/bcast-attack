@@ -115,9 +115,66 @@ def lcm(a,b) :
 
 # pencarian solusi linear adalah topik yg luas
 # kita tidak mungkin merangkum nya dalam satu prosedur/fungsi
-# dalam prosedur ini kita asumsi matrix disusun oleh vektor kolom
+# dalam prosedur ini kita asumsi matrix disusun oleh vektor kolom,
+# tetapi implementasi oleh numpy utk mensupoort operasi baris
 # input: A dan B dimensi sama, p = presisi numerik
+#        A mtx kolom, B mtx baris
 # return: solusi sistem linear
-def solve_linear(A, B, p):     # mencari transformasi linear T.A = B
-        # 
-        return 0
+def solve_linear(A, B, p=15):     # mencari transformasi linear A.T = B
+        # kita "terpaksa" memakai eliminasi Gauss karena sifat sistem
+        # bawaan dri algoritma Kannan adalah tidak full rank. Menjadikan
+        # adanya kolom atau baris nol dan tidak memungkinkan penggunaan
+        # faktorisasi LU yg lebih efisien
+        # WARN : kompleksitas algoritma ini adalah O(n^3)
+        (m,n) = A.shape
+        jmax = min(m,n)
+        T = np.empty((jmax,len(B)))     # asumsi konsisten
+        c = 0                           # indeks kolom dri T
+        while c < len(B) :
+                b = B[c]
+                # loop
+                X = np.append( A, np.resize(b,(m,1)), axis=1 )
+                # cek utk row scaling
+                # cari quantile
+                # mulai eliminasi Gauss dg partial pivot
+                i = j = 0
+                while i < m and j < n :
+                        # cek jika kolom dibawah sdh nol
+                        if all(map(lambda x: not x, X[i:m, j])) :
+                                j += 1    # geser indeks kolom
+                                continue
+                        while not (X[i,j] > 0 and all(map(lambda x: not x, X[i+1:m,j]) )) :
+                                # s nilai maximum dalam satu kolom j
+                                # lihat partial pivot, buku lin5a p.36
+                                s = max(filter(lambda x: x, map(abs, X[i:m,j])))
+			        rows = range(i,m)
+			        tabs = np.array([rows, abs(X[rows,j])]) .transpose()
+                                # index nilai minimum
+			        k = min( map(lambda r: r[0], filter(lambda r: r[1]==s, tabs)) )
+                                if i != k :
+                                        t = np.copy(X[i])       # swap baris
+                                        X[i] = X[k]
+                                        X[k] = t
+                                if X[i,j] < 0 :
+                                        X[i]*=-1
+                                for k in range(i+1,m) :
+                                        q =  X[k,j] / X[i,j]
+                                        if q != 0 :
+                                                X[k] -= q*X[i]
+                        # inc kolom dan baris
+                        i += 1
+                        j += 1
+                        
+                # cek karakteristik sistem
+                print X
+                # mulai back substitute
+                for i in range(jmax-1, -1, -1) :
+                        s = 0
+                        for j in range(jmax-1, i, -1) :
+                                s += X[i,j]*T[j, c]
+                        if all( map(lambda x: not x, X[i]) ) :
+                                T[i,c] = 0                                
+                        else :
+                                T[i,c] = (X[i,n] - s) / X[i,i]
+                c += 1  # increment kolom T
+        return T        # solusi msih dalam persepsi matrix kolom
