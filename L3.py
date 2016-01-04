@@ -145,5 +145,6 @@ class LLL :
         else :                
             print "DEBUG: iterasi", i, "reduce", "k=",k, "l=",l, "ukl=", 
 
-def is_reduced(b) :   # check whether basis reduced
+# check whether basis reduced            
+def is_reduced(b) :              # reduced in term of Lenstra
     return 0
