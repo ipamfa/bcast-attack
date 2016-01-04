@@ -111,7 +111,13 @@ def gcd(a,b) :
 
 def lcm(a,b) :
         c = gcd(a,b)
-        return c*(a/c)*(b/c)        
+        return c*(a/c)*(b/c)
+
+def findNZ1(a) :
+        i = 0
+        while i < len(a) and not a[i] :
+                i += 1
+        return i
 
 # pencarian solusi linear adalah topik yg luas
 # kita tidak mungkin merangkum nya dalam satu prosedur/fungsi
@@ -128,8 +134,10 @@ def solve_linear(A, B, p=15):     # mencari transformasi linear A.T = B
         # WARN : kompleksitas algoritma ini adalah O(n^3)
         (m,n) = A.shape
         jmax = min(m,n)
-        T = np.empty((jmax,len(B)))     # asumsi konsisten
-        c = 0                           # indeks kolom dri T
+        # ukuran T haruskah jmax atau n ???
+        T = np.zeros((n ,len(B)))     # asumsi konsisten
+        tswp = {}
+        c = 0                         # indeks kolom dri T
         while c < len(B) :
                 b = B[c]
                 # loop
@@ -165,16 +173,47 @@ def solve_linear(A, B, p=15):     # mencari transformasi linear A.T = B
                         i += 1
                         j += 1
                         
-                # cek karakteristik sistem
-                print X
+                # cek karakteristik sistem, perhatikan asumsi kontek Kannan
+                # 1) kasus tidak konsisten bisa muncul (tak ada solusi)
+                # 2) kasus linear dependen
+                # susun ulang kolom jika bentuk pivot tidak diagonal !!!
+                i = m
+                while i > jmax :
+                        if all( map(lambda x: not x, X[i-1,:n]) ) : # baris nol
+                                if X[i-1,n] :
+                                        return [ ]
+                        i -= 1
+                print X                
                 # mulai back substitute
                 for i in range(jmax-1, -1, -1) :
                         s = 0
                         for j in range(jmax-1, i, -1) :
                                 s += X[i,j]*T[j, c]
-                        if all( map(lambda x: not x, X[i]) ) :
-                                T[i,c] = 0                                
+                        # baris nol
+                        if all( map(lambda x: not x, X[i,:n]) ) :
+                                # ruas kanan harus dicek nol juga
+                                if X[i,n] :
+                                        return [ ]
+                                T[i,c] = 0                      
                         else :
+                                if X[i,i]==0 :
+                                        # swap kolom
+                                        j = i
+                                        while X[i,j]==0 and j < n :
+                                                j += 1
+                                        for it in range(0,m) :
+                                                t = X[it,i]
+                                                X[it,i] = X[it,j]
+                                                X[it,j] = t
+                                        # update daftar T yg mesti diswap
+                                        tswp[c] = (i,j)
                                 T[i,c] = (X[i,n] - s) / X[i,i]
                 c += 1  # increment kolom T
+        # ubah urutan solusi karena pertukaran kolom sebelumnya (jika ada)
+        for c in tswp :
+                (a,b) = tswp[c]
+                t = T[a,c]
+                T[a,c] = T[b,c]
+                T[b,c] = t
+              
         return T        # solusi msih dalam persepsi matrix kolom

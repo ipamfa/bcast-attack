@@ -1,6 +1,6 @@
 import unittest
 from L3 import *
-from kannan import orthoproject
+from kannan import orthoproject, shortest
 
 # Test Gram-schmidt, ambil dari Bremner      
 class GramSTest(unittest.TestCase) :
@@ -37,5 +37,22 @@ class GramSTest(unittest.TestCase) :
         b2_ = orthoproject(b2)
         print b2_
 
+    def test_orthoproject_2(self) :
+        x = np.array([
+            [4.0, 0.20000000000000018, -0.6],
+            [0.04878048780487809, -0.09756097560975618, 0.29268292682926833]
+        ])
+        orthoproject(x)
+
+    def test_kannan_algorithm(self) :
+        print "Test Kannan algorithm"
+        print "====================="
+        b1 = np.array([
+            [4,5,1],
+            [4,8,2],
+            [6,2,6]
+        ])
+        shortest(b1)
+        
 if __name__ == "__main__" :
     unittest.main()

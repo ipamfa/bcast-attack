@@ -1,37 +1,36 @@
-
 import numpy as np
 from numpy.linalg import inv, norm
 from numpy.matlib import matrix
 
-
 from util import swap, gcd, lcm
+#
+# ingat kata The Practice of Programming : Designing Interface :D
+#
+class Gram :
+    def __init__(self,b) :       # b adalah numpy array object
+        (m,n) = b.shape
+        # star x star
+        self.D = np.array( range(0,m), float )
+        # basis hasil reduksi, di buku Bremner notasinya y
+        self.B = np.copy(b)
+        # basis orthogonal Gram-schmidt, y*
+        self.B_ = B.astype(float,copy=True)  # konversi ke float
+        # konstanta mu
+        self.U = {}
+        for i in range(0,m) :                # proses Gram-schmidt thd basis b
+            for j in range(0,i) :
+                self.U[(i,j)] = np.dot( self.B[i], self.B_[j] )/self.D[j]
+                self.B_[i] -= self.U[(i,j)]*self.B_[j]
+            self.D[i] = np.dot( self.B_[i], self.B_[i] )
 
-B = None   # basis hasil reduksi, di buku Bremner notasinya y
-B_ = None  # basis orthogonal Gram-schmidt, y*
-D = None   # star x star
-U = {}     # konstanta mu
+    # param  = i, j : index integer 
+    # return = konstanta mu
+    def getU(self, i, j) :                   # aksesor ke konstanta mu
+        return self.U[ (i,j) ]
 
-def gram(b) :    # proses Gram-schmidt thd basis b
-    (m,n) = b.shape
-    global D, B, B_
-    D = np.array( range(0,m), float )
-    B = np.copy(b)
-    B_ = B.astype(float,copy=True)  # konversi ke float
-    for i in range(0,m) :
-        for j in range(0,i) :
-            #
-            U[(i,j)] = np.dot( B[i],B_[j] )/D[j]
-            B_[i] -= U[(i,j)]*B_[j]
-            
-        D[i] = np.dot( B_[i],B_[i] )
+    def getBstar(self,i) :                   # aksesor ke basis orthogonal
+        return self.B_[i]
         
-# ingat kata the practice of programming : Designing Interface :D
-# aksesor ke b* basis orthogonal
-def getBstar(i) :
-    return B_[i]
-
-def getU(i,j) :      # indeks dimulai dari 0 (nol)
-    return [ (i,j) ]
 
 # in our program, k=1..(n-1) and l=k-1, k-2..0 -> setup l < k
 def reduce(k,l) :

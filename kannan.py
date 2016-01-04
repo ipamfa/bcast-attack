@@ -1,8 +1,8 @@
 from fractions import Fraction
-from numpy import empty, copy, zeros, array, append, ravel, identity
+import numpy as np
 from numpy.linalg import norm
 from numpy.matlib import dot, matrix
-from util import gauss_elim
+from util import solve_linear, lcm, gcd, findNZ1
 
 # asumsi desain tanpa thread dan lock, gunakan glob variable
 Z = None                                # vektor zero (nol)
@@ -20,7 +20,7 @@ def lifting(a,b) :                      # proyeksi thd a
 
 def orthoproject(b) :             # proyeksi orthogonal thd b0
     (j,k) = b.shape
-    b_ = empty( [j-1,k], )
+    b_ = np.empty( [j-1,k], )
     for i in range( 0,j-1 ) :
         b_[i] = b[i+1] - (float( dot( b[i+1],b[0] ))/dot( b[0],b[0] ))*b[0]
     
@@ -31,7 +31,7 @@ def select_basis(b) :     # b is numpy array
     (j,k) = b.shape       # j = k+1
     global Z
     if Z is None :
-        Z = zeros(k)      # TODO : cek apakah rekursif berpengaruh    
+        Z = np.zeros(k)      # TODO : cek apakah rekursif berpengaruh    
     if all( b[0]==Z ) :
         if len(b) > 1 :
             basis = b[1:]
@@ -40,28 +40,46 @@ def select_basis(b) :     # b is numpy array
     else :
         # tes apakah b[0]= kombinasi linear dari b[1]..b[j-1]
         # menggunakan eliminasi Gauss
-        (c,xs) = gauss_elim(b, True)    
-        # TODO : numerical precission issue
-        c[j-1] = map(lambda x: round(x,14), c[j-1])
+        c = solve_linear( (b[1:j].astype(float)).T , b[:1] )        
         
-        a = empty([j-1,k], dtype=object)
-        if not all( c[j-1]==Z ) :          # b[0] bebas linear thd b lain
-            a[0] = copy(b[0])
+        a = np.empty([j-1,k], dtype=object)
+        if c==[] :                      # b[0] bebas linear thd b lain
+            a[0] = np.copy(b[0])
         else :
-            # xs masih matrix, hanya perlu baris terakhir
-            xs = map(lambda x: (-1/xs[j-1,0])*x, xs[j-1, 1:])
-            f = Fraction(str(xs[0]))
+            xs = c.T[0]                 # transpos c msh dalam represnt kolom
+            #
+            # dont you look like an idiot who write codes ? even you yourself
+            # cant grasp and understand a single piece of code you write by
+            # your own hand a couple weeks ago and now you perplex by your own
+            # thoughts
+            
+            # khusus bagian ini lihat buku Bremner p.185
+            # kita tidak perlu y dan z karena sdh ditangani oleh Fraction
+            # tidak perlu menangani x_i 0
+            i = findNZ1( xs )
+            f = Fraction( str(xs[i]) )
             m = f.denominator
-            for x in xs[1:] :
-                f = Fraction(str(x))
-                m = lcm(f.denominator, m)
-            d = long( round( m*xs[0] ) )
-            for x in xs[1:] :
-                x = long( round(m*x) )
-                d = gcd(x, d)
+            i2 = i+1
+            while i2 <  len(xs) :
+                if xs[i2] :
+                    f = Fraction( str(xs[i2]) )
+                    m = lcm( f.denominator, m )
+                i2 += 1
+                
+            d = long( round( m*xs[i] ) )
+            i += 1
+            while i <  len(xs) :
+                if xs[i] :
+                    x = long( round(m*xs[i]) )
+                    d = gcd( x,d )
+                i += 1
+            
+            # python perlu denominator tetap positif
             if d < 0 :
                 m *= -1
                 d *= -1
+            # f adalah bentuk rasional m/d yg jika relative prima = p/q
+            # yg berarti faktor bersama nya dikeluarkan dan diambil q nya
             f = Fraction( '%d/%d' % (m,d) )
             if m < 0 :
                 a[0] = ( -1.0/f.denominator )*b[0]
@@ -70,7 +88,7 @@ def select_basis(b) :     # b is numpy array
 
         # proyeksi b ke a[0]. karena b[0] sdh diproses, maka
         # b yg diproyeksi berikutnya adalah 1,2..j-1
-        b_ = orthoproject( append([ a[0]], b[1:], axis=0 ) )
+        b_ = orthoproject( np.append([ a[0]], b[1:], axis=0 ) )
         # spek dr Kannan menyatakan set b adalah linear dependent
         # TODO : cek nilai 0
         if len(b_)==1 :
@@ -99,7 +117,7 @@ def List(k,m) :
     if k == 0 :
         # list telah komplit, tambahkan ke alpha
         global alpha
-        alpha = append( alpha, [ copy(alpha[0]) ], axis=0 )
+        alpha = np.append( alpha, [ np.copy(alpha[0]) ], axis=0 )
     # 
     # hitung beta0_k proposisi 2.13 ref Kannan p.
     x = norm( getBstar(0) )/norm( getBstar(k-1) )
@@ -119,10 +137,13 @@ def List(k,m) :
 def enumerate(b) :
     (m,n) = b.shape
     if m == 1 :
-        return b
+        return b[0]
     global alpha
-    alpha = array( [ zeros(m) ] , dtype=object)
+    alpha = np.array( [ np.zeros(m) ] , dtype=object)
     # hitung bm(m) = b*_m
+    print "DEBUG: enumerate"
+    print "================"
+    print b
     gram(b)    
     lim = norm(b[0])/norm( getBstar( m-1 ) )
     for j in range( long( round(-lim )), long( round(lim )) + 1 ) :
@@ -130,11 +151,11 @@ def enumerate(b) :
         List(m-1,m)
     # alpha sdh selesai, tinggal di iterasi cari SVP :)
     B = matrix(b)
-    svp = ravel( alpha[1]*B )
+    svp = np.ravel( alpha[1]*B )
     sn = norm(svp)
     k = len(alpha)
     for i in range(2, k) :
-        x = ravel( alpha[i]*B )
+        x = np.ravel( alpha[i]*B )
         xn = norm(x)
         if sn > xn :
             sn = xn
@@ -153,22 +174,21 @@ def shortest(B) :
     if j==1 :
         return B
     
-    b = LLL(B[n:])    
+    b = LLL(B)    
     # aproximasi reduced basis
     b_ = orthoproject(b)
     
     # rekursif
-    b__ = shortest(x1,)
+    b__ = shortest(b_)    
+    T =  solve_linear( b_,b__ )  #     
     
-    T = 0 # 
-    toLong(T)
     # lifting dg transformasi linear, catatan 13/12
-    v = T*b[1:]               # karena matrix baris, T di sebelah kiri
-    b[1:] = numpy.asarray(v)  # override
+    v = T.T*b[1:]             # transpose T karena msh kolom 
+    b[1:] = np.asarray(v)     # override
     b0n = norm(b[0])
     b1n = norm(b[1])
     if b1n > b0n*sqrt(3)/2 :
-        t = copy(b[0]) # swap
+        t = np.copy(b[0]) # swap
         b[0] = b[1]
         b[1] = t
         b0n = b1n
@@ -184,12 +204,12 @@ def shortest(B) :
     # enumerate
     v1 = enumerate(b[:i-1])
     # select-basis
-    B = select_basis( append([v1], b, axis=0) )
+    B = select_basis( np.append([v1], b, axis=0) )
     # ulangi lagi step
     B_ = orthoproject(B)
-    B__ = shortest(B_,n-1)                # rekursif
-    T = 0
-    toLong(T)
-    V = T*B[1:]
-    B[1:] = numpy.asarray(V)
+    B__ = shortest(B_)                # rekursif
+    T = solve_linear( B_, B__ )
+    
+    V = T.T*B[1:]                     # transpose T karena msh kolom
+    B[1:] = np.asarray(V)
     return B                              
