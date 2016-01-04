@@ -1,28 +1,22 @@
 import unittest
 from L3 import *
-from kannan import shortest, enumerate, select_basis
 
-# Test Gram-schmidt, ambil dari Bremner      
+# Test Gram-schmidt dan algoritma LLL, ambil dari Bremner
 class GramSTest(unittest.TestCase) :
     
     def test_v1equal_bstar1(self):
+        print "test gram-schmidt"
         X = np.array([
             [3, -1, 5],
             [-5, 2, -1],
             [-3, 9, 2]
         ])
-        gram(X)
+        g = Gram(X)
         #
-        y = getBstar(0)
+        y = g.getBstar(0)
         x = X[0]
         self.assertEqual( all( x==y ), True)
-        
-    def test_bstar_before_run_isNone(self) :
-        # test for 3 dim
-        self.assertIsNone( getBstar(0) )
-        self.assertIsNone( getBstar(1) )
-        self.assertIsNone( getBstar(2) )
-
+    
     def test_lll_fullrank_3dim(self) :
         print "Test 3 dimensi"
         print "=============="
@@ -32,9 +26,9 @@ class GramSTest(unittest.TestCase) :
             [6,2,6]
         ])
         b = LLL(x)
-        print b
-        print "eval norm |b1|=", norm(b[0]), " |b2|=", norm(b[1]), " |b3|=", norm(b[2])
-        shortest(x)
+        print b.getBasis()
+    #    print b
+    #    print "eval norm |b1|=", norm(b[0]), " |b2|=", norm(b[1]), " |b3|=", norm(b[2])        
         
     def test_lll_fullrank_4dim(self) :
         # apply reduction algorithm
@@ -45,8 +39,8 @@ class GramSTest(unittest.TestCase) :
             [8, -9, 6, -4],
         ])
         b = LLL(x, 1.0)
-        print b
-        print "eval norm |b1|=", norm(b[0]), " |b2|=", norm(b[1]), " |b3|=", norm(b[2]), " |b4|=", norm(b[3])
+        print b.getBasis()
+    #    print "eval norm |b1|=", norm(b[0]), " |b2|=", norm(b[1]), " |b3|=", norm(b[2]), " |b4|=", norm(b[3])
 
     def test_lll_8dim(self) :
         x = np.array([
@@ -60,8 +54,8 @@ class GramSTest(unittest.TestCase) :
             [ -4, -2, -8, 6, 0, 4, -9, 7]
         ])
         b = LLL(x)
-        print b
-        print "eval norm |b1|=", norm(b[0]), " |b2|=", norm(b[1]), " |b3|=", norm(b[2]), " |b4|=", norm(b[3]), "|b5|", norm(b[4]), " |b6|=", norm(b[5]), " |b7|=", norm(b[6]), " |b8|=", norm(b[7])
+        print b.getBasis()
+     #   print "eval norm |b1|=", norm(b[0]), " |b2|=", norm(b[1]), " |b3|=", norm(b[2]), " |b4|=", norm(b[3]), "|b5|", norm(b[4]), " |b6|=", norm(b[5]), " |b7|=", norm(b[6]), " |b8|=", norm(b[7])
 
 if __name__ == "__main__" :
     unittest.main()
