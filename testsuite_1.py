@@ -59,6 +59,6 @@ class GaussElimTest(unittest.TestCase) :    # uji kasus bukan normal
         print "kasus Kannan"
         print "============"
         print solve_linear( (X.astype(float)).T, Y.astype(float) )
-        
+            
 if __name__ == "__main__" :
     unittest.main()

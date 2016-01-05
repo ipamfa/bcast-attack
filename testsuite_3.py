@@ -1,5 +1,6 @@
 import unittest
 from L3 import *
+from kannan import shortest
 
 # Test Gram-schmidt dan algoritma LLL, ambil dari Bremner
 class GramSTest(unittest.TestCase) :
@@ -25,8 +26,11 @@ class GramSTest(unittest.TestCase) :
             [4,8,2],
             [6,2,6]
         ])
+        
         b = LLL(x)
         print b.getBasis()
+        print "test Kannan"
+        shortest(x)
     #    print b
     #    print "eval norm |b1|=", norm(b[0]), " |b2|=", norm(b[1]), " |b3|=", norm(b[2])        
         

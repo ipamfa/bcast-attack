@@ -106,31 +106,32 @@ def select_basis(b) :     # b is numpy array
         basis = a
     return basis
 
-from L3 import gram, getBstar, getU
+from L3 import Gram
 
 alpha = []    # list of array of possible integer combination
 
 # ref: Kannan p.
-# input : k = basis ke, m = jml basis (indexing diawali dari 1/ aturan umum)
+# input : k = basis ke, m = jml basis (indexing diawali dari 1/ aturan umum), g = Gram schmidt data
 # return list of integer
-def List(k,m) :
+def List(k,m,g) :
     if k == 0 :
         # list telah komplit, tambahkan ke alpha
         global alpha
         alpha = np.append( alpha, [ np.copy(alpha[0]) ], axis=0 )
+        return
     # 
     # hitung beta0_k proposisi 2.13 ref Kannan p.
-    x = norm( getBstar(0) )/norm( getBstar(k-1) )
+    x = norm( g.getBstar(0) )/norm( g.getBstar(k-1) )
     t = 0
     for j in range( k+1, m+1 ) :     # lihat catatan 18/12
-        t += getU( j-1,k-1 )         # lihat spek interface
+        t += g.getU( j-1,k-1 )       # lihat spek interface
     beta0_k = long( round(- x - t) )
     d = long( round(2*x) )
     # tes utk tiap kombinasi nilai alpha
     global alpha
     for i in range( beta0_k , beta0_k + d + 1 ) :
         alpha[0, k-1] = i
-        List(k-1,m) # rekursif
+        List(k-1,m,g) # rekursif
 
 # ref: Kannan p.
 # find shortest vector in lattice L(b1, b2, ... b_m)
@@ -141,14 +142,12 @@ def enumerate(b) :
     global alpha
     alpha = np.array( [ np.zeros(m) ] , dtype=object)
     # hitung bm(m) = b*_m
-    print "DEBUG: enumerate"
-    print "================"
-    print b
-    gram(b)    
-    lim = norm(b[0])/norm( getBstar( m-1 ) )
+    
+    g = Gram(b)
+    lim = norm(b[0])/norm( g.getBstar( m-1 ) )
     for j in range( long( round(-lim )), long( round(lim )) + 1 ) :
         alpha[0, m-1] = j
-        List(m-1,m)
+        List(m-1,m,g)
     # alpha sdh selesai, tinggal di iterasi cari SVP :)
     B = matrix(b)
     svp = np.ravel( alpha[1]*B )
@@ -172,44 +171,48 @@ from L3 import LLL
 def shortest(B) :    
     (j,k) = B.shape
     if j==1 :
-        return B
+        return B    
+    b = LLL(B).getBasis()              # representasi basis dalam array 2d
+
+    while True :
+        # aproximasi reduced basis
+        b_ = orthoproject(b)
     
-    b = LLL(B)    
-    # aproximasi reduced basis
-    b_ = orthoproject(b)
-    
-    # rekursif
-    b__ = shortest(b_)    
-    T =  solve_linear( b_,b__ )  #     
-    
-    # lifting dg transformasi linear, catatan 13/12
-    v = T.T*b[1:]             # transpose T karena msh kolom 
-    b[1:] = np.asarray(v)     # override
-    b0n = norm(b[0])
-    b1n = norm(b[1])
-    if b1n > b0n*sqrt(3)/2 :
-        t = np.copy(b[0]) # swap
+        # rekursif
+        b__ = shortest(b_)
+        # lifting dg transformasi linear, catatan 13/12       
+        T =  solve_linear( b_.T,b__ )  # b_ perlu ditransform, liat spek
+        
+        # transpose T karena msh kolom 
+        v = matrix( T.T )*matrix( b[1:] )            # ubah ke matrix dulu
+        b[1:] = np.asarray(v)                        # override array lagi
+        b0n = norm(b[0])
+        b1n = norm(b[1])
+        if b1n**2 > (3.0/4)*b0n**2 :
+            break                   
+        # swap
+        t = np.copy(b[0])
         b[0] = b[1]
         b[1] = t
-        b0n = b1n
+        
     # temukan nilai batas j0
-    gram(b)
+    g = Gram(b)        
     # cari vektor yg norm-nya lebih besar dari b0
     i = 1
     while i < j :
-        v = getBstar(i)
+        v = g.getBstar(i)
         if norm(v) >= b0n :
             break
         i += 1
-    # enumerate
-    v1 = enumerate(b[:i-1])
+    # enumerate   
+    v1 = enumerate(b[:i])
     # select-basis
     B = select_basis( np.append([v1], b, axis=0) )
-    # ulangi lagi step
+    # ulangi lagi step spt yg didalam loop
     B_ = orthoproject(B)
-    B__ = shortest(B_)                # rekursif
-    T = solve_linear( B_, B__ )
+    B__ = shortest(B_)                               # rekursif
+    T = solve_linear( B_.T, B__ )
     
-    V = T.T*B[1:]                     # transpose T karena msh kolom
+    V = matrix( T.T )*matrix( B[1:] )                # perlu bentuk matrix
     B[1:] = np.asarray(V)
     return B                              

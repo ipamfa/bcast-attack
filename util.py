@@ -183,7 +183,7 @@ def solve_linear(A, B, p=15):     # mencari transformasi linear A.T = B
                                 if X[i-1,n] :
                                         return [ ]
                         i -= 1
-                print X                
+                
                 # mulai back substitute
                 for i in range(jmax-1, -1, -1) :
                         s = 0
