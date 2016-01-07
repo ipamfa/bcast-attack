@@ -169,6 +169,7 @@ def solve_linear(A, B, p=15):     # mencari transformasi linear A.T = B
                                         q =  X[k,j] / X[i,j]
                                         if q != 0 :
                                                 X[k] -= q*X[i]
+                                                X[k] = map(lambda x: round(x,p),X[k])
                         # inc kolom dan baris
                         i += 1
                         j += 1
@@ -210,6 +211,7 @@ def solve_linear(A, B, p=15):     # mencari transformasi linear A.T = B
                                 T[i,c] = (X[i,n] - s) / X[i,i]
                 c += 1  # increment kolom T
         # ubah urutan solusi karena pertukaran kolom sebelumnya (jika ada)
+        # TODO : ganti konsep table swap jadi matrix elementer
         for c in tswp :
                 (a,b) = tswp[c]
                 t = T[a,c]

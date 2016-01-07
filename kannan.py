@@ -5,11 +5,20 @@ from numpy.matlib import dot, matrix
 from util import solve_linear, lcm, gcd, findNZ1
 
 # asumsi desain tanpa thread dan lock, gunakan glob variable
-Z = None                                # vektor zero (nol)
+Z = None                                  # vektor zero (nol)
 
-def lifting(a,b) :                      # proyeksi thd a
+def orthoproject(a,b) :                   # proyeksi orthogonal thd a
+    (j,k) = b.shape
+    b_ = np.empty( [j,k], )
+    for i in range( 0,j ) :
+        x = float( dot( b[i],a ))/dot( a,a )
+        b_[i] = b[i] - x*a
+    
+    return b_
+
+def lifting(a,b) :                        # proyeksi thd v in L'
     x = float( dot(a, b) )/dot(a, a)
-    while True :        
+    while True :
         b = b - a
         y = float( dot(a, b) )/dot(a, a)
         if abs(x) < abs(y) :
@@ -18,20 +27,14 @@ def lifting(a,b) :                      # proyeksi thd a
     # undo subtraction of b
     return b + a
 
-def orthoproject(b) :             # proyeksi orthogonal thd b0
-    (j,k) = b.shape
-    b_ = np.empty( [j-1,k], )
-    for i in range( 0,j-1 ) :
-        b_[i] = b[i+1] - (float( dot( b[i+1],b[0] ))/dot( b[0],b[0] ))*b[0]
-    
-    return b_
-
+# spek dr Kannan menyatakan set b adalah linear dependent
 # ref: Kannan p.
-def select_basis(b) :     # b is numpy array    
-    (j,k) = b.shape       # j = k+1
+def select_basis(b) :        # b is numpy array
+    (j,k) = b.shape          # j = k+1
     global Z
     if Z is None :
-        Z = np.zeros(k)      # TODO : cek apakah rekursif berpengaruh    
+        Z = np.zeros(k)      # TODO : cek apakah rekursif berpengaruh
+    b[0] =  map(lambda x: round(x,14), b[0])  # cek pembulatan nol pd b0
     if all( b[0]==Z ) :
         if len(b) > 1 :
             basis = b[1:]
@@ -40,22 +43,16 @@ def select_basis(b) :     # b is numpy array
     else :
         # tes apakah b[0]= kombinasi linear dari b[1]..b[j-1]
         # menggunakan eliminasi Gauss
-        c = solve_linear( (b[1:j].astype(float)).T , b[:1] )        
+        c = solve_linear( (b[1:j].astype(float)).T , [ b[0] ] ) 
         
         a = np.empty([j-1,k], dtype=object)
         if c==[] :                      # b[0] bebas linear thd b lain
             a[0] = np.copy(b[0])
         else :
-            xs = c.T[0]                 # transpos c msh dalam represnt kolom
-            #
-            # dont you look like an idiot who write codes ? even you yourself
-            # cant grasp and understand a single piece of code you write by
-            # your own hand a couple weeks ago and now you perplex by your own
-            # thoughts
-            
+            xs = c.T[0]                 # c msh dalam represnt kolom
             # khusus bagian ini lihat buku Bremner p.185
             # kita tidak perlu y dan z karena sdh ditangani oleh Fraction
-            # tidak perlu menangani x_i 0
+            # tidak perlu menangani x_i = 0
             i = findNZ1( xs )
             f = Fraction( str(xs[i]) )
             m = f.denominator
@@ -88,22 +85,18 @@ def select_basis(b) :     # b is numpy array
 
         # proyeksi b ke a[0]. karena b[0] sdh diproses, maka
         # b yg diproyeksi berikutnya adalah 1,2..j-1
-        b_ = orthoproject( np.append([ a[0]], b[1:], axis=0 ) )
-        # spek dr Kannan menyatakan set b adalah linear dependent
-        # TODO : cek nilai 0
-        if len(b_)==1 :
-            b_[0] =  map(lambda x: round(x,14), b_[0])  # harusnya close to 0
+        b_ = orthoproject( a[0], b[1:] )
         # rekursif
-        c = select_basis(b_)          
-        # hasil dari rekursif digunakan utk lifting
-        if len(c) > 0 :
-            # unique minimal lifting dari c ke a
-            j = len(c)
-            for i in range(0, j):
-                # lihat buku catatan 17/12
-                a[i+1] = lifting(a[0], b[i+1] + c[i] - b_[i] )
-        
+        v = select_basis(b_)
+        V = np.empty( v.shape )
+        # hasil dari rekursif digunakan utk lifting dari c ke a
+        i = 0
+        for c in v :
+            V[i] = lifting(a[0], c)
+            i += 1
+        a[1:] = np.asarray(V)
         basis = a
+        
     return basis
 
 from L3 import Gram
@@ -135,15 +128,14 @@ def List(k,m,g) :
 
 # ref: Kannan p.
 # find shortest vector in lattice L(b1, b2, ... b_m)
-def enumerate(b) :
+def enumerate(b,g) :
     (m,n) = b.shape
     if m == 1 :
         return b[0]
     global alpha
     alpha = np.array( [ np.zeros(m) ] , dtype=object)
     # hitung bm(m) = b*_m
-    
-    g = Gram(b)
+        
     lim = norm(b[0])/norm( g.getBstar( m-1 ) )
     for j in range( long( round(-lim )), long( round(lim )) + 1 ) :
         alpha[0, m-1] = j
@@ -176,7 +168,7 @@ def shortest(B) :
 
     while True :
         # aproximasi reduced basis
-        b_ = orthoproject(b)
+        b_ = orthoproject(b[0], b[1:])
     
         # rekursif
         b__ = shortest(b_)
@@ -188,7 +180,7 @@ def shortest(B) :
         b[1:] = np.asarray(v)                        # override array lagi
         b0n = norm(b[0])
         b1n = norm(b[1])
-        if b1n**2 > (3.0/4)*b0n**2 :
+        if b1n**2 >= (3.0/4)*b0n**2 :
             break                   
         # swap
         t = np.copy(b[0])
@@ -205,14 +197,20 @@ def shortest(B) :
             break
         i += 1
     # enumerate   
-    v1 = enumerate(b[:i])
+    v1 = enumerate(b[:i], g)
     # select-basis
     B = select_basis( np.append([v1], b, axis=0) )
     # ulangi lagi step spt yg didalam loop
-    B_ = orthoproject(B)
-    B__ = shortest(B_)                               # rekursif
+    B_ = orthoproject( B[0], B[1:] )
+    B__ = shortest(B_)                               # rekursif    
     T = solve_linear( B_.T, B__ )
-    
+    # tangani kondisi ketika pengenolan
+    # apakah dalam enumerate alpha diubah2 secara share
     V = matrix( T.T )*matrix( B[1:] )                # perlu bentuk matrix
     B[1:] = np.asarray(V)
     return B                              
+
+def init_global() :                                  # will move to OO design
+    global Z, alpha
+    Z = None
+    alpha = []

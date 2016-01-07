@@ -11,9 +11,9 @@ class GramSTest(unittest.TestCase) :
             [-5, 2, -1],
             [-3, 9, 2]
         ])
-        gram(X)
+        g = Gram(X)
         #
-        y = getBstar(0)
+        y = g.getBstar(0)
         x = X[0]
         self.assertEqual( all( x==y ), True)
         
@@ -25,7 +25,7 @@ class GramSTest(unittest.TestCase) :
             [4,8,2],
             [6,2,6]
         ])
-        b1_ = orthoproject(b1)
+        b1_ = orthoproject(b1[0], b1[1:])
         print b1_
         
         b2 = np.array([
@@ -34,25 +34,14 @@ class GramSTest(unittest.TestCase) :
             [2, -8, -9, -7],
             [8, -9, 6, -4],
         ])
-        b2_ = orthoproject(b2)
+        b2_ = orthoproject(b2[0], b2[1:])
         print b2_
 
     def test_orthoproject_2(self) :
-        x = np.array([
-            [4.0, 0.20000000000000018, -0.6],
-            [0.04878048780487809, -0.09756097560975618, 0.29268292682926833]
-        ])
-        orthoproject(x)
+        x = np.array([[4.0, 0.2, -0.6],
+                      [0.9268292682926829, -1.853658536585366, 5.560975609756098]] )
+        x_ = orthoproject( x[0], x[1:] )
+        print x_
 
-    def test_kannan_algorithm(self) :
-        print "Test Kannan algorithm"
-        print "====================="
-        b1 = np.array([
-            [4,5,1],
-            [4,8,2],
-            [6,2,6]
-        ])
-        shortest(b1)
-        
 if __name__ == "__main__" :
     unittest.main()
