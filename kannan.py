@@ -87,14 +87,13 @@ def select_basis(b) :        # b is numpy array
         # b yg diproyeksi berikutnya adalah 1,2..j-1
         b_ = orthoproject( a[0], b[1:] )
         # rekursif
-        v = select_basis(b_)
-        V = np.empty( v.shape )
+        v = select_basis(b_)        
         # hasil dari rekursif digunakan utk lifting dari c ke a
-        i = 0
+        i = 1                     # a[0] sudah diproses
         for c in v :
-            V[i] = lifting(a[0], c)
+            a[i] = lifting(b, c)
             i += 1
-        a[1:] = np.asarray(V)
+        
         basis = a
         
     return basis
